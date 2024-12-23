@@ -1,7 +1,7 @@
 #ifndef SERVER
 #define SERVER
 
-#define PORT 3002
+#define PORT 3000
 #define MAX_LISTENERS 10
 #define BUFFER_SIZE 1024
 

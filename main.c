@@ -47,44 +47,53 @@ int main(int argc, char** argv)
 	// number of bytes received or sent when working with sockets
 	ssize_t rec_byte;
 
-	while(1)
-	{
-		struct sockaddr_in c_addr;
-		socklen_t c_addr_size = sizeof(c_addr);
-		// initialization client server socket
-		csd = accept(ssd, (struct sockaddr*)&c_addr, &c_addr_size);
-		if(csd == -1)
-		{
-			perror("Failed to create csd");
-			return 1;
-		}
+    while(1)
+    {
+		// creating client socket descriptor
+		int csd;
+        char buffer[BUFFER_SIZE];
+        ssize_t rec_byte;
+        struct sockaddr_in c_addr;
+        socklen_t c_addr_size = sizeof(c_addr);
 
-		memset(buffer, 0, BUFFER_SIZE);
-		ssize_t total_rec_byte = 0;
+        // Initialization client server socket
+        csd = accept(ssd, (struct sockaddr*)&c_addr, &c_addr_size);
+        if(csd == -1)
+        {
+            perror("Failed to create csd");
+            continue;
+        }
 
-		while(1)
-		{
-			rec_byte = recv(csd, buffer, BUFFER_SIZE - 1, 0);
-			buffer[rec_byte] = '\0';
-			handle_req(csd, buffer);
+        memset(buffer, 0, BUFFER_SIZE);
+        ssize_t total_rec_byte = 0;
 
-        	if (rec_byte < 0)
-        	{
-           		perror("Failed to receive data");
-            	break;
-        	}
-
-        	if (rec_byte == 0)
+        while(1)
+        {
+            rec_byte = recv(csd, buffer, BUFFER_SIZE - 1, 0);
+            
+            if(rec_byte > 0)
 			{
-            	break; // Connection closed by client
-        	}
-		}
+                buffer[rec_byte] = '\0';
+                handle_req(csd, buffer);
+            }
+            
+            if(rec_byte < 0)
+            {
+                perror("Failed to receive data");
+                break;
+            }
 
-		close(csd);
-	}
+            if(rec_byte == 0)
+            {
+                break; // Connection closed by client
+            }
+        }
 
-	close(ssd);
-	return 0;
+        close(csd);
+    }
+
+    close(ssd);
+    return 0;
 }
 
 // sd is socket descriptor
@@ -124,11 +133,11 @@ void send_res(int sd, const char* content, const char* content_type)
 {
 	char res[BUFFER_SIZE];
 	snprintf(res, sizeof(res),
-	"HTTP/1.1 200 OK\r\n"
-    "Content-Type: %s\r\n"
-    "Content-Length: %ld\r\n"
-    "Connection: close\r\n"
-    "\r\n",
+		"HTTP/1.1 200 OK\r\n"
+		"Content-Type: %s\r\n"
+		"Content-Length: %ld\r\n"
+		"Connection: close\r\n"
+		"\r\n",
 	content_type, strlen(content));
 
 	// sending data
