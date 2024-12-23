@@ -14,7 +14,7 @@ int main(int argc, char** argv)
 {
     printf("Server was started at port %d\n", PORT);
 
-	// creating server socket descriptor
+    // creating server socket descriptor
     int ssd = socket(AF_INET, SOCK_STREAM, 0);
     if(ssd == -1)
     {
@@ -71,7 +71,7 @@ int main(int argc, char** argv)
             rec_byte = recv(csd, buffer, BUFFER_SIZE - 1, 0);
             
             if(rec_byte > 0)
-			{
+            {
                 buffer[rec_byte] = '\0';
                 handle_req(csd, buffer);
             }
@@ -98,48 +98,48 @@ int main(int argc, char** argv)
 // sd is socket descriptor
 void handle_req(int sd, char* buffer)
 {
-	if(sd < 0 || buffer == NULL)
-	{
-		perror("sd or buffer in handle_req() is undefined");
-		return;
-	}
+    if(sd < 0 || buffer == NULL)
+    {
+        perror("sd or buffer in handle_req() is undefined");
+        return;
+    }
 
-	if(strncmp(buffer, "GET ", 4) == 0)
-	{
-		printf("%s\n", buffer);
-		char* filename = getFilename(sd, buffer);
-		printf("filename is %s\n", filename);
-		char* res = getResource(filename);
-		free(filename);
-		if(res == NULL)
-		{
-			send(sd, HEADERS_400, strlen(HEADERS_400), 0);
-			return;
-		}
+    if(strncmp(buffer, "GET ", 4) == 0)
+    {
+        printf("%s\n", buffer);
+        char* filename = getFilename(sd, buffer);
+        printf("filename is %s\n", filename);
+        char* res = getResource(filename);
+        free(filename);
+        if(res == NULL)
+        {
+            send(sd, HEADERS_400, strlen(HEADERS_400), 0);
+            return;
+        }
 
-		send_res(sd, res, "text/html");
-		free(res);
-	}
+        send_res(sd, res, "text/html");
+        free(res);
+    }
 
-	else
-	{
-		send(sd, HEADERS_400, strlen(HEADERS_400), 0);
-	}
+    else
+    {
+        send(sd, HEADERS_400, strlen(HEADERS_400), 0);
+    }
 }
 
 // sd is socket descriptor
 void send_res(int sd, const char* content, const char* content_type)
 {
-	char res[BUFFER_SIZE];
-	snprintf(res, sizeof(res),
-		"HTTP/1.1 200 OK\r\n"
-		"Content-Type: %s\r\n"
-		"Content-Length: %ld\r\n"
-		"Connection: close\r\n"
-		"\r\n",
-	content_type, strlen(content));
+    char res[BUFFER_SIZE];
+    snprintf(res, sizeof(res), 
+    "HTTP/1.1 200 OK\r\n"
+    "Content-Type: %s\r\n"
+    "Content-Length: %ld\r\n"
+    "Connection: close\r\n"
+    "\r\n",
+    content_type, strlen(content));
 
-	// sending data
-	send(sd, res, strlen(res), 0);
-	send(sd, content, strlen(content), 0);
+    // sending data
+    send(sd, res, strlen(res), 0);
+    send(sd, content, strlen(content), 0);
 }
