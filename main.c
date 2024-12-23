@@ -5,16 +5,10 @@
 #include <arpa/inet.h> // some functions for data conversion
 #include <string.h> // functions for strings
 #include <unistd.h> // close
-#include "server.h" // function headers of this project
-
-#define PORT 3002
-#define MAX_LISTENERS 10
-#define BUFFER_SIZE 1024
-
-// setting headers for some status codes
-#define HEADERS_200 "HTTP/1.1 200 OK\nContent-type: text/html; charset=utf-8\nServer: UnixWebServer v1.0.0\n\n"
-#define HEADERS_400 "HTTP/1.1 400 Bad Request\nContent-type: text/html; charset=utf-8\nServer: UnixWebServer v1.0.0\n\n"
-#define HEADERS_404 "HTTP/1.1 200 Not Found\nContent-type: text/html; charset=utf-8\nServer: UnixWebServer v1.0.0\n\n"
+#include "./utils/getFilename.c" // function for getting filename from HTTP req
+#include "./utils/getResource.c" // function for getting resource from filename
+#include "./headers/server.h" // function headers of this project
+#include "./headers/headers.h" // headers responses
 
 int main(int argc, char** argv)
 {
@@ -65,12 +59,25 @@ int main(int argc, char** argv)
 			return 1;
 		}
 
-		while((rec_byte = recv(csd, buffer, BUFFER_SIZE - 1, 0)) > 0)
+		memset(buffer, 0, BUFFER_SIZE);
+		ssize_t total_rec_byte = 0;
+
+		while(1)
 		{
-			// set null char for end of string
+			rec_byte = recv(csd, buffer, BUFFER_SIZE - 1, 0);
 			buffer[rec_byte] = '\0';
 			handle_req(csd, buffer);
-			break;
+
+        	if (rec_byte < 0)
+        	{
+           		perror("Failed to receive data");
+            	break;
+        	}
+
+        	if (rec_byte == 0)
+			{
+            	break; // Connection closed by client
+        	}
 		}
 
 		close(csd);
@@ -91,8 +98,19 @@ void handle_req(int sd, char* buffer)
 
 	if(strncmp(buffer, "GET ", 4) == 0)
 	{
-		char* res = "<!DOCTYPE html><html><head></head><body>Welcome to localhost</body></html>";
+		printf("%s\n", buffer);
+		char* filename = getFilename(sd, buffer);
+		printf("filename is %s\n", filename);
+		char* res = getResource(filename);
+		free(filename);
+		if(res == NULL)
+		{
+			send(sd, HEADERS_400, strlen(HEADERS_400), 0);
+			return;
+		}
+
 		send_res(sd, res, "text/html");
+		free(res);
 	}
 
 	else
@@ -107,10 +125,10 @@ void send_res(int sd, const char* content, const char* content_type)
 	char res[BUFFER_SIZE];
 	snprintf(res, sizeof(res),
 	"HTTP/1.1 200 OK\r\n"
-        "Content-Type: %s\r\n"
-        "Content-Length: %ld\r\n"
-        "Connection: close\r\n"
-        "\r\n",
+    "Content-Type: %s\r\n"
+    "Content-Length: %ld\r\n"
+    "Connection: close\r\n"
+    "\r\n",
 	content_type, strlen(content));
 
 	// sending data
