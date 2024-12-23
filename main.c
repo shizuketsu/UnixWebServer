@@ -12,45 +12,45 @@
 
 int main(int argc, char** argv)
 {
-	printf("Server was started at port %d\n", PORT);
+    printf("Server was started at port %d\n", PORT);
 
 	// creating server socket descriptor
-	int ssd = socket(AF_INET, SOCK_STREAM, 0);
-	if(ssd == -1)
-	{
-		perror("Failed to create ssd");
-		return 1;
-	}
+    int ssd = socket(AF_INET, SOCK_STREAM, 0);
+    if(ssd == -1)
+    {
+        perror("Failed to create ssd");
+        return 1;
+    }
 
-	struct sockaddr_in s_addr;
-	s_addr.sin_family = AF_INET;
-	s_addr.sin_port = htons(PORT);
-	s_addr.sin_addr.s_addr = INADDR_ANY;
+    struct sockaddr_in s_addr;
+    s_addr.sin_family = AF_INET;
+    s_addr.sin_port = htons(PORT);
+    s_addr.sin_addr.s_addr = INADDR_ANY;
 
-	if(bind(ssd, (struct sockaddr*)&s_addr, sizeof(s_addr)))
-	{
-		perror("Failed to bind ssd");
-		return 1;
-	}
+    if(bind(ssd, (struct sockaddr*)&s_addr, sizeof(s_addr)))
+    {
+        perror("Failed to bind ssd");
+        return 1;
+    }
 
-	// start listen server socket
-	if(listen(ssd, MAX_LISTENERS))
-	{
-		perror("Failed to listen ssd");
-		return 1;
-	}
+    // start listen server socket
+    if(listen(ssd, MAX_LISTENERS))
+    {
+        perror("Failed to listen ssd");
+        return 1;
+    }
 
-	// creating client socket descriptor
-	int csd;
-	// creating buffer for temporary storage of client data
-	char buffer[BUFFER_SIZE];
-	// number of bytes received or sent when working with sockets
-	ssize_t rec_byte;
+    // creating client socket descriptor
+    int csd;
+    // creating buffer for temporary storage of client data
+    char buffer[BUFFER_SIZE];
+    // number of bytes received or sent when working with sockets
+    ssize_t rec_byte;
 
     while(1)
     {
-		// creating client socket descriptor
-		int csd;
+        // creating client socket descriptor
+        int csd;
         char buffer[BUFFER_SIZE];
         ssize_t rec_byte;
         struct sockaddr_in c_addr;
@@ -65,7 +65,6 @@ int main(int argc, char** argv)
         }
 
         memset(buffer, 0, BUFFER_SIZE);
-        ssize_t total_rec_byte = 0;
 
         while(1)
         {
