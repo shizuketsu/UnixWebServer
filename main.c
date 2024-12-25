@@ -109,7 +109,7 @@ void handle_req(int sd, char* buffer)
         printf("%s\n", buffer);
         char* filename = getFilename(sd, buffer);
         printf("filename is %s\n", filename);
-        char* res = getResource(filename);
+        resource_t* res = getResource(filename);
         free(filename);
         if(res == NULL)
         {
@@ -117,8 +117,8 @@ void handle_req(int sd, char* buffer)
             return;
         }
 
-        send_res(sd, res, "text/html");
-        free(res);
+        send_res(sd, res->data, res->mime_type);
+        freeResource(res);
     }
 
     else
